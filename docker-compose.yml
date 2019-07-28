@@ -1,0 +1,186 @@
+version: '3'
+services:
+  redis:
+    image: 'redis'
+    container_name: redis
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.15
+    volumes:
+      - './redis.conf:/usr/local/etc/redis/redis.conf'
+    environment:
+      - REDIS_DEFAULT_PASSWORD=redis
+      - MASTER_DEFAULT_PASSWORD=redis
+    ports:
+      - '6379'
+  consul:
+    command: -server -bootstrap docker
+    image: progrium/consul:latest
+    ports:
+      - "8400"
+      - "8500"
+      - "53"
+    networks:
+      net:
+        ipv4_address: 172.28.1.14
+  registrator:
+    command: -ip=0.0.0.0 consul://consul:8500
+    image: gliderlabs/registrator:latest
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    links:
+      - consul
+    networks:
+      net:
+        ipv4_address: 172.28.1.13
+  weavescope:
+    image: weaveworks/scope:1.6.4
+    container_name: weave-scope
+    ports:
+      - "4040"
+    labels:
+      - "works.weave.role=system"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.12
+    command:
+      - "--probe.docker=true"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - './pgadmin:/root/.pgadmin'
+    ports:
+      - '80'
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.11
+  db:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /data/postgres
+    volumes:
+      - './postgres:/data/postgres'
+    ports:
+      - '5432'
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.10
+  buyingservice:
+    build: ./services/buying-services
+    container_name: buying-service
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.5
+    links:
+      - 'db:db'
+    ports:
+      - '80'
+      - '443'
+    volumes:
+      - './services/buying-services/etc/nginx/:/etc/nginx/sites-enabled/'
+      - './services/buying-services/etc/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf'
+      - './services/buying-services/etc/supervisord.conf:/etc/supervisor/supervisord.conf'
+      - './services/buying-services/src/:/var/www/html/'
+      - './logs/buying-services/:/var/log/nginx/'
+    #command: >
+    #  sh -c "composer install --no-interaction && chown -R php.staff /var/www/html"
+  commentservice:
+    build: ./services/comment-services
+    container_name: comment-service
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.4
+    links:
+      - 'db:db'
+    ports:
+      - '80'
+      - '443'
+    volumes:
+      - './services/comment-services/etc/nginx/:/etc/nginx/sites-enabled/'
+      - './services/comment-services/etc/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf'
+      - './services/comment-services/etc/supervisord.conf:/etc/supervisor/supervisord.conf'
+      - './services/comment-services/src/:/var/www/html/'
+      - './logs/comment-services/:/var/log/nginx/'
+    #command: >
+    #  sh -c "composer install --no-interaction && chown -R php.staff /var/www/html"
+  productservice:
+    build: ./services/product-services
+    container_name: product-service
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.3
+    links:
+      - 'db:db'
+    ports:
+      - '80'
+      - '443'
+    volumes:
+      - './services/product-services/etc/nginx/:/etc/nginx/sites-enabled/'
+      - './services/product-services/etc/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf'
+      - './services/product-services/etc/supervisord.conf:/etc/supervisor/supervisord.conf'
+      - './services/product-services/src/:/var/www/html/'
+      - './logs/product-services/:/var/log/nginx/'
+    #command: >
+    #  sh -c "composer install --no-interaction && chown -R php.staff /var/www/html"
+  categoryservice:
+    build: ./services/category-services
+    container_name: category-service
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.2
+    links:
+      - 'db:db'
+    ports:
+      - '80'
+      - '443'
+    volumes:
+      - './services/category-services/etc/nginx/:/etc/nginx/sites-enabled/'
+      - './services/category-services/etc/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf'
+      - './services/category-services/etc/supervisord.conf:/etc/supervisor/supervisord.conf'
+      - './services/category-services/src/:/var/www/html/'
+      - './logs/category-services/:/var/log/nginx/'
+    #command: >
+    #  sh -c "composer install --no-interaction && chown -R php.staff /var/www/html"
+  userservice:
+    build: ./services/user-services
+    container_name: user-service
+    restart: always
+    networks:
+      net:
+        ipv4_address: 172.28.1.1
+    links:
+      - 'db:db'
+    ports:
+      - '80'
+      - '443'
+    volumes:
+      - './services/user-services/etc/nginx/:/etc/nginx/sites-enabled/'
+      - './services/user-services/etc/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf'
+      - './services/user-services/etc/supervisord.conf:/etc/supervisor/supervisord.conf'
+      - './services/user-services/src/:/var/www/html/'
+      - './logs/user-services/:/var/log/nginx/'
+    #command: >
+    #  sh -c "composer install --no-interaction && chown -R php.staff /var/www/html"
+networks:
+    net:
+      ipam:
+        driver: default
+        config:
+          - subnet: 172.28.0.0/16

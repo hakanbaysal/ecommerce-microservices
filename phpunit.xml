@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true" bootstrap="services/user-services/src/vendor/autoload.php">
+    <testsuites>
+        <testsuite name="user-services">
+            <directory>services/user-services/src/tests/</directory>
+        </testsuite>
+        <testsuite name="product-services">
+            <directory>services/product-services/src/tests/</directory>
+        </testsuite>
+        <testsuite name="comment-services">
+            <directory>services/comment-services/src/tests/</directory>
+        </testsuite>
+        <testsuite name="category-services">
+            <directory>services/category-services/src/tests/</directory>
+        </testsuite>
+        <testsuite name="buying-services">
+            <directory>services/buying-services/src/tests/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

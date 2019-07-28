@@ -1,0 +1,16 @@
+language: php
+services:
+  - docker
+php:
+  - 7.2
+before_script:
+    - cd services/
+    - travis_retry composer self-update
+    - travis_retry composer install --no-interaction --prefer-source --dev
+script:
+  - composer test user-services/src/tests/UserTest.php
+  - composer test product-services/src/tests/ProductTest.php
+  - composer test comment-services/src/tests/CommentTest.php
+  - composer test category-services/src/tests/CategoryTest.php
+  - composer test buying-services/src/tests/BuyingTest.php
+install: true
